@@ -4,38 +4,36 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.List;
-
 import com.joysinfo.main.R;
-
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.app.Activity;
-import android.app.SearchManager.OnCancelListener;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnClickListener{
-   private Button installApk;
-    
+   private Button installApk,setting;
+   private String photoAction="com.joysinfo.photoactivity";
+   private String settingAction="com.joysinfo.settingactivity";
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
        installApk=(Button)this.findViewById(R.id.bt);
+       setting=(Button) this.findViewById(R.id.bt_setting);
+       setting.setOnClickListener(this);
        boolean isfind=findApk();
        if (isfind) {
     	   installApk.setText("启动来电秀插件");
 	    }else{
-          installApk.setText("安装来电秀插件");
+           installApk.setText("安装来电秀插件");
 	    }
        installApk.setOnClickListener(this);
     }
@@ -47,42 +45,43 @@ public class MainActivity extends Activity implements OnClickListener{
 			//首先是查找apk是否安装，如果没安装则copy，安装
 			boolean isfind=findApk();
 			if (isfind) {
-				String action = "me.joysinfo.testaction01";
-		        Intent it = new Intent(action);
+		        Intent it = new Intent(photoAction);
 				startActivity(it);
 			}else{
+				/*首先判断assets中是否存在,需要的文件
+				 * 如果不存在则显示对话框提示，是否下载？如果下载则开始下载，弹出下载界面
+				 * */
+			//开启下载，并存储到sdcard中，安装。
+				
 				//安装
-				Install(this,"test.apk");
+				//Install(this,"test.apk");
 			}
+			break;
+		case R.id.bt_setting:
+			 Intent it = new Intent(settingAction);
+			 startActivity(it);
 			break;
 		default:
 			break;
 		}
-		
 	 }
 
 	private boolean findApk() {
 		boolean isfind=false;
-		String action = "me.joysinfo.testaction01";
-        Intent n = new Intent(action);
         PackageManager packageManager = getBaseContext().getPackageManager();
-        final Intent intent = new Intent(action);
+        final Intent intent = new Intent(photoAction);
         List<ResolveInfo> resolveInfo = packageManager
                 .queryIntentActivities(intent,
                         PackageManager.MATCH_DEFAULT_ONLY);
-        if (resolveInfo.size() > 0) {
+        if (resolveInfo.size()>0) {
         	isfind=true;
             Toast.makeText(getBaseContext(), "找到了匹配的activity", 0).show();
-        }
-        else{
+        }else{
         	isfind=false;
             Toast.makeText(getBaseContext(), "未找到匹配的activity", 0).show();
         }
-        
 		return isfind;
 	}
-	
-	
 	
 	public  void Install(Context ctx, String strLocalFile) {
         Intent intentInstall = new Intent();
@@ -99,12 +98,11 @@ public class MainActivity extends Activity implements OnClickListener{
                 }
                 os.close();
                 is.close();
-        } catch (Exception e) {
+        } catch (Exception e){
         }
         intentInstall.setAction(android.content.Intent.ACTION_VIEW);
         intentInstall.setDataAndType(Uri.fromFile(file),
                 "application/vnd.android.package-archive");
         ctx.startActivity(intentInstall);
     }
-
 }
